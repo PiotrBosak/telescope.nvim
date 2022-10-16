@@ -337,7 +337,7 @@ end
 
 --- Opens the given picker for the user to interact with
 ---@note: this is the main function for pickers, as it actually creates the interface for users
-function Picker:find()
+function Picker:find(cb)
   self:close_existing_pickers()
   self:reset_selection()
 
@@ -496,6 +496,9 @@ function Picker:find()
       else
         -- TODO(scroll): This can only happen once, I don't like where it is.
         self:_resume_picker()
+      end
+      if cb ~= nil then
+        cb()
       end
     end
   end)
