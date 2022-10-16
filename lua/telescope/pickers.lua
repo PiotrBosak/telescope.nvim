@@ -31,6 +31,7 @@ local ns_telescope_matching = a.nvim_create_namespace "telescope_matching"
 local ns_telescope_prompt = a.nvim_create_namespace "telescope_prompt"
 local ns_telescope_prompt_prefix = a.nvim_create_namespace "telescope_prompt_prefix"
 
+local my_list = {}
 local pickers = {}
 
 -- TODO: Add overscroll option for results buffer
@@ -565,7 +566,6 @@ function Picker:find(cb)
   main_loop()
 end
 
-my_list = {}
 --- A helper function to update picker windows when layout options are changed
 function Picker:recalculate_layout()
   local line_count = vim.o.lines - vim.o.cmdheight
