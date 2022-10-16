@@ -103,7 +103,7 @@ function Picker:new(opts)
     manager = (type(opts.manager) == "table" and getmetatable(opts.manager) == EntryManager) and opts.manager,
     _multi = (type(opts._multi) == "table" and getmetatable(opts._multi) == getmetatable(MultiSelect:new()))
         and opts._multi
-      or MultiSelect:new(),
+        or MultiSelect:new(),
 
     track = vim.F.if_nil(opts.track, false),
     stats = {},
@@ -375,7 +375,7 @@ function Picker:find(cb)
   end
 
   local results_win, results_opts, results_border_win =
-    self:_create_window("", popup_opts.results, not self.wrap_results)
+  self:_create_window("", popup_opts.results, not self.wrap_results)
 
   local results_bufnr = a.nvim_win_get_buf(results_win)
   pcall(a.nvim_buf_set_option, results_bufnr, "tabstop", 1) -- #1834
@@ -479,7 +479,8 @@ function Picker:find(cb)
 
         self:_reset_highlights()
         local process_result = self:get_result_processor(find_id, prompt, debounced_status)
-        local process_complete = self:get_result_completor(self.results_bufnr, find_id, prompt, status_updater, prompt_bufnr)
+        local process_complete = self:get_result_completor(self.results_bufnr, find_id, prompt, status_updater,
+          prompt_bufnr, cb)
 
         local ok, msg = pcall(function()
           self.finder(prompt, process_result, process_complete)
@@ -499,7 +500,7 @@ function Picker:find(cb)
     end
   end)
 
-my_list = {}
+  my_list = {}
   -- Register attach
   vim.api.nvim_buf_attach(prompt_bufnr, false, {
     on_lines = function(...)
@@ -599,7 +600,7 @@ function Picker:recalculate_layout()
       local preview_bufnr = status.preview_bufnr ~= nil
           and vim.api.nvim_buf_is_valid(status.preview_bufnr)
           and status.preview_bufnr
-        or ""
+          or ""
       preview_win, preview_opts, preview_border_win = self:_create_window(preview_bufnr, popup_opts.preview)
       if preview_bufnr == "" then
         preview_bufnr = a.nvim_win_get_buf(preview_win)
@@ -1052,9 +1053,9 @@ function Picker:update_prefix(entry, row)
   end
 
   local old_caret = string.sub(line, 0, #prefix(true)) == prefix(true) and prefix(true)
-    or string.sub(line, 0, #prefix(true, true)) == prefix(true, true) and prefix(true, true)
-    or string.sub(line, 0, #prefix(false)) == prefix(false) and prefix(false)
-    or string.sub(line, 0, #prefix(false, true)) == prefix(false, true) and prefix(false, true)
+      or string.sub(line, 0, #prefix(true, true)) == prefix(true, true) and prefix(true, true)
+      or string.sub(line, 0, #prefix(false)) == prefix(false) and prefix(false)
+      or string.sub(line, 0, #prefix(false, true)) == prefix(false, true) and prefix(false, true)
   if old_caret == false then
     log.warn(string.format("can't identify old caret in line: %s", line))
     return
@@ -1314,22 +1315,23 @@ end
 ---@param find_id number
 ---@param prompt string
 ---@param status_updater function
-function Picker:get_result_completor(results_bufnr, find_id, prompt, status_updater,prompt_bufnr)
+function Picker:get_result_completor(results_bufnr, find_id, prompt, status_updater, prompt_bufnr, cb)
   return vim.schedule_wrap(function()
     if self.closed == true or self:is_done() then
       return
     end
-
-    self:_do_selection(prompt)
+    if cb ~= nil then
+      local res = cb(my_list, prompt_bufnr)
+      self:set_selection(self:get_row(res))
+      my_list = {}
+    else
+      self:_do_selection(prompt)
+    end
     state.set_global_key("current_line", self:_get_prompt())
     status_updater { completed = true }
 
     self:clear_extra_rows(results_bufnr)
     self.sorter:_finish(prompt)
-      if cb ~= nil then
-        cb(my_list, prompt_bufnr)
-        my_list = {}
-      end
     self:_on_complete()
   end)
 end
