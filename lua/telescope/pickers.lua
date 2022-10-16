@@ -1325,9 +1325,8 @@ function Picker:get_result_completor(results_bufnr, find_id, prompt, status_upda
       self:full_layout_update()
       self:set_selection(self:get_row(res))
       my_list = {}
-    else
-      self:_do_selection(prompt)
     end
+      self:_do_selection(prompt)
     state.set_global_key("current_line", self:_get_prompt())
     status_updater { completed = true }
 
