@@ -1325,12 +1325,12 @@ function Picker:get_result_completor(results_bufnr, find_id, prompt, status_upda
     state.set_global_key("current_line", self:_get_prompt())
     status_updater { completed = true }
 
-    self:clear_extra_rows(results_bufnr)
-    self.sorter:_finish(prompt)
-    self:_on_complete()
     if cb ~= nil then
       cb(my_list, prompt_bufnr)
     end
+    self:clear_extra_rows(results_bufnr)
+    self.sorter:_finish(prompt)
+    self:_on_complete()
   end)
 end
 
