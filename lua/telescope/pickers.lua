@@ -1321,18 +1321,16 @@ function Picker:get_result_completor(results_bufnr, find_id, prompt, status_upda
     if self.closed == true or self:is_done() then
       return
     end
-    if cb ~= nil then
-      local res = cb(my_list, prompt_bufnr)
-      self:set_selection(self:get_row(res))
-    else
       self:_do_selection(prompt)
-    end
     state.set_global_key("current_line", self:_get_prompt())
     status_updater { completed = true }
 
     self:clear_extra_rows(results_bufnr)
     self.sorter:_finish(prompt)
     self:_on_complete()
+    if cb ~= nil then
+      cb(my_list, prompt_bufnr)
+    end
   end)
 end
 
