@@ -498,8 +498,8 @@ function Picker:find(cb)
         -- TODO(scroll): This can only happen once, I don't like where it is.
         self:_resume_picker()
       end
-    end
       my_list = {}
+    end
   end)
 
   -- Register attach
