@@ -123,7 +123,7 @@ files.live_grep = function(opts)
         return true
       end,
     })
-    :find()
+    :find(opts.cb)
 end
 
 files.grep_string = function(opts)
