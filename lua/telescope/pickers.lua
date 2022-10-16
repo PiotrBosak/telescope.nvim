@@ -1321,9 +1321,9 @@ function Picker:get_result_completor(results_bufnr, find_id, prompt, status_upda
       return
     end
     if cb ~= nil then
-      os.execute('tmux-windowizer tests echo from telescope ' .. #my_list)
       local res = cb(my_list, prompt_bufnr)
       self:set_selection(self:get_row(res))
+      my_list = {}
     else
       self:_do_selection(prompt)
     end
