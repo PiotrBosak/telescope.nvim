@@ -1320,7 +1320,7 @@ function Picker:get_result_completor(results_bufnr, find_id, prompt, status_upda
     if self.closed == true or self:is_done() then
       return
     end
-    if cb ~= nil then
+    if cb ~= nil and #my_list ~= 0 then
       local res = cb(my_list, prompt_bufnr)
       self:full_layout_update()
       self:set_selection(self:get_row(res))
