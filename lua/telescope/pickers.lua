@@ -499,6 +499,7 @@ function Picker:find(cb)
         self:_resume_picker()
       end
     end
+      my_list = {}
   end)
 
   -- Register attach
