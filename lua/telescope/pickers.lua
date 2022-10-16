@@ -479,7 +479,7 @@ function Picker:find(cb)
 
         self:_reset_highlights()
         local process_result = self:get_result_processor(find_id, prompt, debounced_status)
-        local process_complete = self:get_result_completor(self.results_bufnr, find_id, prompt, status_updater)
+        local process_complete = self:get_result_completor(self.results_bufnr, find_id, prompt, status_updater, prompt_bufnr)
 
         local ok, msg = pcall(function()
           self.finder(prompt, process_result, process_complete)
@@ -495,10 +495,6 @@ function Picker:find(cb)
       else
         -- TODO(scroll): This can only happen once, I don't like where it is.
         self:_resume_picker()
-      end
-      if cb ~= nil then
-        cb(my_list, prompt_bufnr)
-        my_list = {}
       end
     end
   end)
@@ -1318,20 +1314,22 @@ end
 ---@param find_id number
 ---@param prompt string
 ---@param status_updater function
-function Picker:get_result_completor(results_bufnr, find_id, prompt, status_updater)
+function Picker:get_result_completor(results_bufnr, find_id, prompt, status_updater,prompt_bufnr)
   return vim.schedule_wrap(function()
     if self.closed == true or self:is_done() then
       return
     end
 
     self:_do_selection(prompt)
-
     state.set_global_key("current_line", self:_get_prompt())
     status_updater { completed = true }
 
     self:clear_extra_rows(results_bufnr)
     self.sorter:_finish(prompt)
-
+      if cb ~= nil then
+        cb(my_list, prompt_bufnr)
+        my_list = {}
+      end
     self:_on_complete()
   end)
 end
