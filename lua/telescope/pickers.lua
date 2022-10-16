@@ -1322,6 +1322,7 @@ function Picker:get_result_completor(results_bufnr, find_id, prompt, status_upda
       return
     end
     if cb ~= nil then
+      self:_do_selection(prompt)
       local res = cb(my_list, prompt_bufnr)
       self:set_selection(self:get_row(res))
     else
