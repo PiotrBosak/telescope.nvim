@@ -488,7 +488,9 @@ function Picker:find(cb)
         if not ok then
           log.warn("Finder failed with msg: ", msg)
         end
-
+      if cb ~= nil then
+        cb(process_result)
+      end
         local diff_time = (vim.loop.hrtime() - start_time) / 1e6
         if self.debounce and diff_time < self.debounce then
           async.util.sleep(self.debounce - diff_time)
@@ -496,9 +498,6 @@ function Picker:find(cb)
       else
         -- TODO(scroll): This can only happen once, I don't like where it is.
         self:_resume_picker()
-      end
-      if cb ~= nil then
-        cb()
       end
     end
   end)
