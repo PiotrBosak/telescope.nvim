@@ -417,6 +417,7 @@ function Picker:find(cb)
 
   vim.api.nvim_buf_set_lines(results_bufnr, 0, self.max_results, false, utils.repeated_table(self.max_results, ""))
 
+  my_list = {}
   local status_updater = self:get_status_updater(prompt_win, prompt_bufnr)
   local debounced_status = debounce.throttle_leading(status_updater, 50)
 
@@ -501,7 +502,6 @@ function Picker:find(cb)
     end
   end)
 
-  my_list = {}
   -- Register attach
   vim.api.nvim_buf_attach(prompt_bufnr, false, {
     on_lines = function(...)
