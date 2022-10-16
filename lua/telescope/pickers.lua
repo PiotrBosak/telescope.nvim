@@ -488,9 +488,6 @@ function Picker:find(cb)
         if not ok then
           log.warn("Finder failed with msg: ", msg)
         end
-      if cb ~= nil then
-        cb(process_result)
-      end
         local diff_time = (vim.loop.hrtime() - start_time) / 1e6
         if self.debounce and diff_time < self.debounce then
           async.util.sleep(self.debounce - diff_time)
@@ -499,9 +496,13 @@ function Picker:find(cb)
         -- TODO(scroll): This can only happen once, I don't like where it is.
         self:_resume_picker()
       end
+      if cb ~= nil then
+        cb(my_list)
+      end
     end
   end)
 
+my_list = {}
   -- Register attach
   vim.api.nvim_buf_attach(prompt_bufnr, false, {
     on_lines = function(...)
@@ -1273,6 +1274,7 @@ function Picker:get_result_processor(find_id, prompt, status_updater)
     -- may need the prompt for tiebreak
     self.manager:add_entry(self, score, entry, prompt)
     status_updater { completed = false }
+    table.insert(my_list, entry)
   end
 
   local cb_filter = function(_)
