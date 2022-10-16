@@ -498,6 +498,7 @@ function Picker:find(cb)
       end
       if cb ~= nil then
         cb(my_list)
+        my_list = {}
       end
     end
   end)
