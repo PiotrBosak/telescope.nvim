@@ -497,7 +497,7 @@ function Picker:find(cb)
         self:_resume_picker()
       end
       if cb ~= nil then
-        cb(my_list)
+        cb(my_list, prompt)
         my_list = {}
       end
     end
