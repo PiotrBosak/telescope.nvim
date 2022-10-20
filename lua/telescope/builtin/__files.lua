@@ -464,7 +464,7 @@ files.current_buffer_fuzzy_find = function(opts)
         return true
       end,
     })
-    :find()
+    :find(opts.cb)
 end
 
 files.tags = function(opts)
