@@ -484,9 +484,9 @@ sorters.get_fzy_sorter_with_index = function(opts)
     discard = true,
 
     scoring_function = function(_, prompt, line)
-      local regex = string.gsub(prompt,"%S+", ".*")
+      local regex = string.gsub(prompt,"%s+", ".*")
       -- Check for actual matches before running the scoring alogrithm.
-      if string.match(line, "function") then
+      if string.match(line, regex) then
         return 1
       else
         return -1
