@@ -59,53 +59,6 @@ local get_open_filelist = function(grep_open_files, cwd)
   return filelist
 end
 
-files.live_grep_mine = function(opts)
-  local filename = vim.fn.expand(vim.api.nvim_buf_get_name(0))
-
-  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-  local lines_with_numbers = {}
-
-  for lnum, line in ipairs(lines) do
-    table.insert(lines_with_numbers, {
-      lnum = lnum,
-      bufnr = 0,
-      filename = filename,
-      text = line,
-    })
-  end
-  local live_grepper = finders.new_job(function(prompt)
-    -- TODO: Probably could add some options for smart case and whatever else rg offers.
-
-    if not prompt or prompt == "" then
-      return nil
-    end
-    local filtered = {}
-    for _,e in ipairs(lines_with_numbers) do
-      if string.match(e.text, prompt) then
-        table.insert(filtered, e)
-      end
-
-    end
-
-    return filtered
-  end, opts.entry_maker or make_entry.gen_from_vimgrep(opts), opts.max_results, opts.cwd)
-
-  pickers
-    .new(opts, {
-      prompt_title = "Live Grep",
-      finder = live_grepper,
-      previewer = conf.grep_previewer(opts),
-      -- TODO: It would be cool to use `--json` output for this
-      -- and then we could get the highlight positions directly.
-      sorter = sorters.highlighter_only(opts),
-      attach_mappings = function(_, map)
-        map("i", "<c-space>", actions.to_fuzzy_refine)
-        return true
-      end,
-    })
-    :find(opts.cb)
-end
-
 -- Special keys:
 --  opts.search_dirs -- list of directory to search in
 --  opts.grep_open_files -- boolean to restrict search to open files
@@ -596,7 +549,7 @@ files.current_buffer_fuzzy_find_mine = function(opts)
         results = lines_with_numbers,
         entry_maker = opts.entry_maker or make_entry.gen_from_buffer_lines(opts),
       },
-      sorter = sorters.highlighter_only(opts),
+      sorter = sorters.get_fzy_sorter(opts),
       previewer = conf.grep_previewer(opts),
       attach_mappings = function()
         action_set.select:enhance {
