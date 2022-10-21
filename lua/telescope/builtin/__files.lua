@@ -458,7 +458,6 @@ files.current_buffer_fuzzy_find = function(opts)
           post = function()
             local selection = action_state.get_selected_entry()
             vim.api.nvim_win_set_cursor(0, { selection.lnum, 0 })
-            vim.cmd[[z.]]
           end,
         }
 
