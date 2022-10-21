@@ -464,7 +464,7 @@ files.current_buffer_fuzzy_find = function(opts)
         return true
       end,
     })
-    :find(opts.cb)
+    :find()
 end
 files.current_buffer_fuzzy_find_mine = function(opts)
   -- All actions are on the current buffer
