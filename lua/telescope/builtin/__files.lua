@@ -60,16 +60,15 @@ local get_open_filelist = function(grep_open_files, cwd)
 end
 
 files.live_grep_mine = function(opts)
-  local filename = vim.fn.expand(vim.api.nvim_buf_get_name(opts.bufnr))
-  local filetype = vim.api.nvim_buf_get_option(opts.bufnr, "filetype")
+  local filename = vim.fn.expand(vim.api.nvim_buf_get_name(0))
 
-  local lines = vim.api.nvim_buf_get_lines(opts.bufnr, 0, -1, false)
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
   local lines_with_numbers = {}
 
   for lnum, line in ipairs(lines) do
     table.insert(lines_with_numbers, {
       lnum = lnum,
-      bufnr = opts.bufnr,
+      bufnr = 0,
       filename = filename,
       text = line,
     })
