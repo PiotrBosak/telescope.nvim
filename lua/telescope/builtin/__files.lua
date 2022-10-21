@@ -538,14 +538,11 @@ files.current_buffer_fuzzy_find_mine = function(opts)
 
     opts.line_highlights = line_highlights
   end
-
+  opts.entry_maker = opts.entry_maker or make_entry.gen_from_vimgrep(opts)
   pickers
     .new(opts, {
       prompt_title = "Current Buffer Fuzzy",
-      finder = finders.new_table {
-        results = lines_with_numbers,
-        entry_maker = opts.entry_maker or make_entry.gen_from_buffer_lines(opts),
-      },
+      finder = finders.new_oneshot_job(args, opts),
       sorter = conf.generic_sorter(opts),
       previewer = conf.grep_previewer(opts),
       attach_mappings = function()
