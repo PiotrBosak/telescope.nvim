@@ -56,6 +56,7 @@ end
 ---@field max_results number: define a upper result value
 ---@field disable_coordinates boolean: don't show the line & row numbers (default: false)
 builtin.live_grep = require_on_exported_call("telescope.builtin.__files").live_grep
+builtin.live_grep_mine = require_on_exported_call("telescope.builtin.__files").live_grep_mine
 
 --- Searches for the string under your cursor in your current working directory
 ---@param opts table: options to pass to the picker
