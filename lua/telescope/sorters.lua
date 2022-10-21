@@ -291,17 +291,17 @@ sorters.get_fuzzy_file = function(opts)
       end
 
       local denominator = (
-        (10 * match_count / #prompt_lower_ngrams)
-        -- biases for shorter strings
-        + 3 * match_count * ngram_len / #line
-        + consecutive_matches
-        + N / (contains_string or (2 * #line))
-        -- + 30/(c1 or 2*N)
-        -- TODO: It might be possible that this too strongly correlates,
-        --          but it's unlikely for people to type capital letters without actually
-        --          wanting to do something with a capital letter in it.
-        + uppers_matching
-      ) * tail_modifier
+          (10 * match_count / #prompt_lower_ngrams)
+              -- biases for shorter strings
+              + 3 * match_count * ngram_len / #line
+              + consecutive_matches
+              + N / (contains_string or (2 * #line))
+              -- + 30/(c1 or 2*N)
+              -- TODO: It might be possible that this too strongly correlates,
+              --          but it's unlikely for people to type capital letters without actually
+              --          wanting to do something with a capital letter in it.
+              + uppers_matching
+          ) * tail_modifier
 
       if denominator == 0 or denominator ~= denominator then
         return -1
@@ -382,15 +382,15 @@ sorters.get_generic_fuzzy_sorter = function(opts)
 
       -- TODO: Copied from ashkan.
       local denominator = (
-        (10 * match_count / #prompt_ngrams)
-        -- biases for shorter strings
-        -- TODO(ashkan): this can bias towards repeated finds of the same
-        -- subpattern with overlapping_ngrams
-        + 3 * match_count * ngram_len / #line
-        + consecutive_matches
-        + N / (contains_string or (2 * #line)) -- + 30/(c1 or 2*N)
+          (10 * match_count / #prompt_ngrams)
+              -- biases for shorter strings
+              -- TODO(ashkan): this can bias towards repeated finds of the same
+              -- subpattern with overlapping_ngrams
+              + 3 * match_count * ngram_len / #line
+              + consecutive_matches
+              + N / (contains_string or (2 * #line))-- + 30/(c1 or 2*N)
 
-      )
+          )
 
       if denominator == 0 or denominator ~= denominator then
         return -1
@@ -476,6 +476,29 @@ sorters.get_fzy_sorter = function(opts)
   }
 end
 
+sorters.get_fzy_sorter_with_index = function(opts)
+  opts = opts or {}
+  local fzy = opts.fzy_mod or require "telescope.algos.fzy"
+  local OFFSET = -fzy.get_score_floor()
+
+  return sorters.Sorter:new {
+    discard = true,
+
+    scoring_function = function(_, prompt, line)
+      -- Check for actual matches before running the scoring alogrithm.
+      if not fzy.has_match(prompt, line) then
+        return -1
+      else
+        return 1
+      end
+    end,
+    highlighter = function(_, prompt, display)
+      return fzy.positions(prompt, display)
+    end,
+  }
+end
+
+
 -- TODO: Could probably do something nice where we check their conf
 --          and choose their default for this.
 --          But I think `fzy` is good default for now.
@@ -494,6 +517,7 @@ sorters.highlighter_only = function(opts)
   }
 end
 
+
 sorters.empty = function()
   return Sorter:new {
     scoring_function = function()
@@ -506,7 +530,7 @@ end
 sorters.get_levenshtein_sorter = function()
   return Sorter:new {
     scoring_function = function(_, prompt, line)
-      return require "telescope.algos.string_distance"(prompt, line)
+      return require "telescope.algos.string_distance" (prompt, line)
     end,
   }
 end

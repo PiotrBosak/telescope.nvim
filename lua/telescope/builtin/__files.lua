@@ -549,7 +549,7 @@ files.current_buffer_fuzzy_find_mine = function(opts)
         results = lines_with_numbers,
         entry_maker = opts.entry_maker or make_entry.gen_from_buffer_lines(opts),
       },
-      sorter = sorters.get_fzy_sorter(opts),
+      sorter = sorters.get_fzy_sorter_with_index(opts),
       previewer = conf.grep_previewer(opts),
       attach_mappings = function()
         action_set.select:enhance {
