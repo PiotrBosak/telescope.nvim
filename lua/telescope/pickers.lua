@@ -1273,7 +1273,6 @@ function Picker:get_result_processor(find_id, prompt, status_updater)
     -- may need the prompt for tiebreak
     self.manager:add_entry(self, score, entry, prompt)
     status_updater { completed = false }
-    table.insert(my_list, entry)
   end
 
   local cb_filter = function(_)
