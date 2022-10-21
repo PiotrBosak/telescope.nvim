@@ -466,6 +466,101 @@ files.current_buffer_fuzzy_find = function(opts)
     })
     :find(opts.cb)
 end
+files.current_buffer_fuzzy_find_mine = function(opts)
+  -- All actions are on the current buffer
+  local filename = vim.fn.expand(vim.api.nvim_buf_get_name(opts.bufnr))
+  local filetype = vim.api.nvim_buf_get_option(opts.bufnr, "filetype")
+
+  local lines = vim.api.nvim_buf_get_lines(opts.bufnr, 0, -1, false)
+  local lines_with_numbers = {}
+
+  for lnum, line in ipairs(lines) do
+    table.insert(lines_with_numbers, {
+      lnum = lnum,
+      bufnr = opts.bufnr,
+      filename = filename,
+      text = line,
+    })
+  end
+
+  local ts_ok, ts_parsers = pcall(require, "nvim-treesitter.parsers")
+  if ts_ok then
+    filetype = ts_parsers.ft_to_lang(filetype)
+  end
+  local _, ts_configs = pcall(require, "nvim-treesitter.configs")
+
+  local parser_ok, parser = pcall(vim.treesitter.get_parser, opts.bufnr, filetype)
+  local query_ok, query = pcall(vim.treesitter.get_query, filetype, "highlights")
+  if parser_ok and query_ok and ts_ok and ts_configs.is_enabled("highlight", filetype, opts.bufnr) then
+    local root = parser:parse()[1]:root()
+
+    local highlighter = vim.treesitter.highlighter.new(parser)
+    local highlighter_query = highlighter:get_query(filetype)
+
+    local line_highlights = setmetatable({}, {
+      __index = function(t, k)
+        local obj = {}
+        rawset(t, k, obj)
+        return obj
+      end,
+    })
+
+    -- update to changes on Neovim master, see https://github.com/neovim/neovim/pull/19931
+    -- TODO(clason): remove when dropping support for Neovim 0.7
+    local on_nvim_master = vim.fn.has "nvim-0.8" == 1
+    for id, node in query:iter_captures(root, opts.bufnr, 0, -1) do
+      local hl = on_nvim_master and query.captures[id] or highlighter_query:_get_hl_from_capture(id)
+      if hl and type(hl) ~= "number" then
+        local row1, col1, row2, col2 = node:range()
+
+        if row1 == row2 then
+          local row = row1 + 1
+
+          for index = col1, col2 do
+            line_highlights[row][index] = hl
+          end
+        else
+          local row = row1 + 1
+          for index = col1, #lines[row] do
+            line_highlights[row][index] = hl
+          end
+
+          while row < row2 + 1 do
+            row = row + 1
+
+            for index = 0, #(lines[row] or {}) do
+              line_highlights[row][index] = hl
+            end
+          end
+        end
+      end
+    end
+
+    opts.line_highlights = line_highlights
+  end
+
+  pickers
+    .new(opts, {
+      prompt_title = "Current Buffer Fuzzy",
+      finder = finders.new_table {
+        results = lines_with_numbers,
+        entry_maker = opts.entry_maker or make_entry.gen_from_buffer_lines(opts),
+      },
+      sorter = conf.generic_sorter(opts),
+      previewer = conf.grep_previewer(opts),
+      attach_mappings = function()
+        action_set.select:enhance {
+          post = function()
+            local selection = action_state.get_selected_entry()
+            vim.api.nvim_win_set_cursor(0, { selection.lnum, 0 })
+          end,
+        }
+
+        return true
+      end,
+    })
+    :find(opts.cb)
+end
 
 files.tags = function(opts)
   local tagfiles = opts.ctags_file and { opts.ctags_file } or vim.fn.tagfiles()

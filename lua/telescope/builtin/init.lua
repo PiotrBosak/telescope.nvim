@@ -97,6 +97,7 @@ builtin.treesitter = require_on_exported_call("telescope.builtin.__files").trees
 ---@param opts table: options to pass to the picker
 ---@field skip_empty_lines boolean: if true we dont display empty lines (default: false)
 builtin.current_buffer_fuzzy_find = require_on_exported_call("telescope.builtin.__files").current_buffer_fuzzy_find
+builtin.current_buffer_fuzzy_find_mine = require_on_exported_call("telescope.builtin.__files").current_buffer_fuzzy_find_mine
 
 --- Lists tags in current directory with tag location file preview (users are required to run ctags -R to generate tags
 --- or update when introducing new changes)
