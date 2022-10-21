@@ -341,6 +341,7 @@ end
 function Picker:find(cb)
   self:close_existing_pickers()
   self:reset_selection()
+  my_list = {}
 
   self.original_win_id = a.nvim_get_current_win()
 
@@ -499,7 +500,6 @@ function Picker:find(cb)
         self:_resume_picker()
       end
     end
-      my_list = {}
   end)
 
   -- Register attach
