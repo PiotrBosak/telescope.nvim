@@ -539,6 +539,7 @@ files.current_buffer_fuzzy_find_mine = function(opts)
     opts.line_highlights = line_highlights
   end
 
+
   pickers
     .new(opts, {
       prompt_title = "Current Buffer Fuzzy",
