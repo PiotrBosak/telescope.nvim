@@ -33,6 +33,7 @@ local ns_telescope_prompt_prefix = a.nvim_create_namespace "telescope_prompt_pre
 
 local my_list = {}
 local pickers = {}
+pickers.my_prompt = ""
 
 -- TODO: Add overscroll option for results buffer
 
@@ -1268,7 +1269,7 @@ end
 ---@return function
 function Picker:get_result_processor(find_id, prompt, status_updater)
   local count = 0
-
+  pickers.my_prompt = prompt
   local cb_add = function(score, entry)
     -- may need the prompt for tiebreak
     self.manager:add_entry(self, score, entry, prompt)
