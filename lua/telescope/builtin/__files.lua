@@ -555,7 +555,7 @@ files.current_buffer_fuzzy_find_mine = function(opts)
         action_set.select:enhance {
           post = function()
             local selection = action_state.get_selected_entry()
-            vim.cmd([[:let @/ = "]] .. pickers:my_prompt:gsub("%s+", ".*") .. [["]])
+            vim.cmd([[:let @/ = "]] .. pickers.my_prompt:gsub("%s+", ".*") .. [["]])
             vim.api.nvim_win_set_cursor(0, { selection.lnum, 0 })
           end,
         }
