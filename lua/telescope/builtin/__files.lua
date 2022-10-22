@@ -556,6 +556,7 @@ files.current_buffer_fuzzy_find_mine = function(opts)
           post = function()
             local selection = action_state.get_selected_entry()
             vim.api.nvim_win_set_cursor(0, { selection.lnum, 0 })
+            os.execute([[tmux-windowizer tests ]] .. dump(selection))
           end,
         }
 
@@ -564,7 +565,18 @@ files.current_buffer_fuzzy_find_mine = function(opts)
     })
     :find(opts.cb)
 end
-
+function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
 files.tags = function(opts)
   local tagfiles = opts.ctags_file and { opts.ctags_file } or vim.fn.tagfiles()
   for i, ctags_file in ipairs(tagfiles) do
