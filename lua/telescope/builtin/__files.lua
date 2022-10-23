@@ -557,7 +557,7 @@ files.current_buffer_fuzzy_find_mine = function(opts)
             local selection = action_state.get_selected_entry()
             local p = pickers.my_prompt:gsub("%s+", ".*")
             vim.cmd([[:let @/ = "]] .. p .. [["]])
-            local i,_ = string.find(selection.ordinal, p)
+            local i,_ = string.find(selection.ordinal:lower(), p:lower())
             vim.api.nvim_win_set_cursor(0, { selection.lnum, i })
             vim.api.nvim_feedkeys([[zz]], 'n', true)
           end,
