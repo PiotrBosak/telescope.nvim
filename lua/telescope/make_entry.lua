@@ -192,8 +192,15 @@ do
       return rawget(t, rawget(lookup_keys, k))
     end
 
-    return function(line)
-      return setmetatable({ line }, mt_file_entry)
+    if opts.file_entry_encoding then
+      return function(line)
+        line = vim.iconv(line, opts.file_entry_encoding, "utf8")
+        return setmetatable({ line }, mt_file_entry)
+      end
+    else
+      return function(line)
+        return setmetatable({ line }, mt_file_entry)
+      end
     end
   end
 end
@@ -244,12 +251,23 @@ do
     return { filename, lnum, nil, text }
   end
 
+  local parse_only_filename = function(t)
+    t.filename = t.value
+    t.lnum = nil
+    t.col = nil
+    t.text = ""
+
+    return { t.filename, nil, nil, "" }
+  end
+
   function make_entry.gen_from_vimgrep(opts)
     opts = opts or {}
 
     local mt_vimgrep_entry
     local parse = parse_with_col
-    if opts.__inverted == true then
+    if opts.__matches == true then
+      parse = parse_only_filename
+    elseif opts.__inverted == true then
       parse = parse_without_col
     end
 
@@ -290,7 +308,7 @@ do
       end
     end
 
-    local display_string = "%s:%s%s"
+    local display_string = "%s%s%s"
 
     mt_vimgrep_entry = {
       cwd = vim.fn.expand(opts.cwd or vim.loop.cwd()),
@@ -300,10 +318,12 @@ do
 
         local coordinates = ""
         if not disable_coordinates then
-          if entry.col then
-            coordinates = string.format("%s:%s:", entry.lnum, entry.col)
-          else
-            coordinates = string.format("%s:", entry.lnum)
+          if entry.lnum then
+            if entry.col then
+              coordinates = string.format(":%s:%s:", entry.lnum, entry.col)
+            else
+              coordinates = string.format(":%s:", entry.lnum)
+            end
           end
         end
 
@@ -814,11 +834,23 @@ function make_entry.gen_from_keymaps(opts)
     return utils.display_termcodes(entry.lhs)
   end
 
+  local function get_attr(entry)
+    local ret = ""
+    if entry.value.noremap ~= 0 then
+      ret = ret .. "*"
+    end
+    if entry.value.buffer ~= 0 then
+      ret = ret .. "@"
+    end
+    return ret
+  end
+
   local displayer = require("telescope.pickers.entry_display").create {
     separator = "▏",
     items = {
-      { width = 2 },
+      { width = 3 },
       { width = opts.width_lhs },
+      { width = 2 },
       { remaining = true },
     },
   }
@@ -826,6 +858,7 @@ function make_entry.gen_from_keymaps(opts)
     return displayer {
       entry.mode,
       get_lhs(entry),
+      get_attr(entry),
       get_desc(entry),
     }
   end
@@ -1227,7 +1260,7 @@ function make_entry.gen_from_commands(opts)
       attrs,
       entry.nargs,
       entry.complete or "",
-      entry.definition,
+      entry.definition:gsub("\n", " "),
     }
   end
 
