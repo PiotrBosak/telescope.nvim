@@ -879,6 +879,10 @@ end
 actions.send_to_qflist = function(prompt_bufnr)
   send_all_to_qf(prompt_bufnr, " ")
 end
+actions.get_prompt = function(prompt_bufnr)
+  local picker = action_state.get_current_picker(prompt_bufnr)
+  return picker:_get_prompt()
+end
 
 --- Adds all entries to the quickfix list, keeping the previous entries.
 ---@param prompt_bufnr number: The prompt bufnr
