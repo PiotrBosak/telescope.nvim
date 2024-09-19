@@ -194,6 +194,10 @@ local shared_options = {
   scroll_speed = "The number of lines to scroll through the previewer",
   prompt_position = { "Where to place prompt window.", "Available Values: 'bottom', 'top'" },
   anchor = { "Which edge/corner to pin the picker to", "See |resolver.resolve_anchor_pos()|" },
+  anchor_padding = {
+    "Specifies an amount of additional padding around the anchor",
+    "Values should be a positive integer",
+  },
 }
 
 -- Used for generating vim help documentation.
@@ -375,7 +379,10 @@ layout_strategies.horizontal = make_documented_layout(
       error(string.format("Unknown prompt_position: %s\n%s", self.window.prompt_position, vim.inspect(layout_config)))
     end
 
-    local anchor_pos = resolve.resolve_anchor_pos(layout_config.anchor or "", width, height, max_columns, max_lines)
+    local anchor = layout_config.anchor or ""
+    local anchor_padding = layout_config.anchor_padding or 1
+
+    local anchor_pos = resolve.resolve_anchor_pos(anchor, width, height, max_columns, max_lines, anchor_padding)
     adjust_pos(anchor_pos, prompt, results, preview)
 
     if tbln then
@@ -486,7 +493,9 @@ layout_strategies.center = make_documented_layout(
     results.col, preview.col, prompt.col = width_padding, width_padding, width_padding
 
     local anchor = layout_config.anchor or ""
-    local anchor_pos = resolve.resolve_anchor_pos(anchor, width, height, max_columns, max_lines)
+    local anchor_padding = layout_config.anchor_padding or 1
+
+    local anchor_pos = resolve.resolve_anchor_pos(anchor, width, height, max_columns, max_lines, anchor_padding)
     adjust_pos(anchor_pos, prompt, results, preview)
 
     -- Vertical anchoring (S or N variations) ignores layout_config.mirror
@@ -565,6 +574,7 @@ layout_strategies.cursor = make_documented_layout(
     local preview = initial_options.preview
     local results = initial_options.results
     local prompt = initial_options.prompt
+    local winid = self.original_win_id
 
     local height_opt = layout_config.height
     local height = resolve.resolve_height(height_opt)(self, max_columns, max_lines)
@@ -599,16 +609,16 @@ layout_strategies.cursor = make_documented_layout(
       results.width = prompt.width
     end
 
-    local position = vim.api.nvim_win_get_position(0)
+    local position = vim.api.nvim_win_get_position(winid)
     local winbar = (function()
       if vim.fn.exists "&winbar" == 1 then
-        return vim.o.winbar == "" and 0 or 1
+        return vim.wo[winid].winbar == "" and 0 or 1
       end
       return 0
     end)()
     local top_left = {
-      line = vim.fn.winline() + position[1] + bs + winbar,
-      col = vim.fn.wincol() + position[2],
+      line = vim.api.nvim_win_call(winid, vim.fn.winline) + position[1] + bs + winbar,
+      col = vim.api.nvim_win_call(winid, vim.fn.wincol) + position[2],
     }
     local bot_right = {
       line = top_left.line + height - 1,
@@ -739,7 +749,10 @@ layout_strategies.vertical = make_documented_layout(
       end
     end
 
-    local anchor_pos = resolve.resolve_anchor_pos(layout_config.anchor or "", width, height, max_columns, max_lines)
+    local anchor = layout_config.anchor or ""
+    local anchor_padding = layout_config.anchor_padding or 1
+
+    local anchor_pos = resolve.resolve_anchor_pos(anchor, width, height, max_columns, max_lines, anchor_padding)
     adjust_pos(anchor_pos, prompt, results, preview)
 
     if tbln then
@@ -770,14 +783,18 @@ layout_strategies.flex = make_documented_layout(
     horizontal = "Options to pass when switching to horizontal layout",
   }),
   function(self, max_columns, max_lines, layout_config)
-    local flip_columns = vim.F.if_nil(layout_config.flip_columns, 100)
-    local flip_lines = vim.F.if_nil(layout_config.flip_lines, 20)
+    local flip_columns = vim.F.if_nil(layout_config.flip_columns, layout_config.horizontal.preview_cutoff)
+    local flip_lines = vim.F.if_nil(layout_config.flip_lines, layout_config.vertical.preview_cutoff)
 
-    if max_columns < flip_columns and max_lines > flip_lines then
+    if max_columns < flip_columns and max_lines >= flip_lines then
       self.__flex_strategy = "vertical"
+      self.layout_config.flip_columns = nil
+      self.layout_config.flip_lines = nil
       return layout_strategies.vertical(self, max_columns, max_lines, layout_config.vertical)
     else
       self.__flex_strategy = "horizontal"
+      self.layout_config.flip_columns = nil
+      self.layout_config.flip_lines = nil
       return layout_strategies.horizontal(self, max_columns, max_lines, layout_config.horizontal)
     end
   end
@@ -897,6 +914,9 @@ layout_strategies.bottom_pane = make_documented_layout(
       end
       if type(results.title) == "string" then
         results.title = { { pos = "S", text = results.title } }
+      end
+      if type(preview.title) == "string" then
+        preview.title = { { pos = "S", text = preview.title } }
       end
     elseif layout_config.prompt_position == "bottom" then
       results.line = max_lines - results.height - (1 + bs) + 1
